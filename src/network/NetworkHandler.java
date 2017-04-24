@@ -1,0 +1,65 @@
+package network;
+
+import game.Game;
+
+import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
+import java.net.*;
+
+/**
+ * Created by protoCJ on 23.04.2017.
+ */
+public class NetworkHandler implements Runnable {
+
+    private Game game;
+    private DatagramSocket in;
+    private DatagramSocket out;
+    private String serverAddress;
+    private Integer outPort;
+    private boolean running;
+
+    public NetworkHandler(Game game, Integer inPortNumber, Integer outPortNumber, String address) {
+        this.game = game;
+        this.serverAddress = address;
+        this.outPort = outPortNumber;
+        try {
+            System.out.println("Creating UDP sockets.");
+            in = new DatagramSocket(inPortNumber);
+            out = new DatagramSocket(outPortNumber);
+        }
+        catch (SocketException e) {
+            e.printStackTrace();
+        }
+        System.out.println("UDP sockets created.");
+
+    }
+
+    public void send(byte[] data) throws IOException {
+        out.send(new DatagramPacket(data, data.length, InetAddress.getByName(serverAddress), outPort));
+        System.out.println("Data sent: " + DatatypeConverter.printHexBinary(data));
+    }
+
+    public void stop() {
+        System.out.println("Stopping UDP listening");
+        running = false;
+        in.close();
+        out.close();
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Starting UDP listening");
+        running = true;
+        byte[] buf = new byte[300];
+        DatagramPacket p = new DatagramPacket(buf, 300);
+        while (running) {
+            try {
+                in.receive(p);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            System.out.println("Data received: " + DatatypeConverter.printHexBinary(p.getData()));
+            game.updateState(p.getData());
+        }
+    }
+}
