@@ -57,7 +57,7 @@ class SchedulerThread extends Thread {
 
     public void run() {
         final ScheduledFuture<?> scheduledFuture =
-                scheduler.scheduleAtFixedRate(toSchedule, 0, 10000, MILLISECONDS);
+                scheduler.scheduleAtFixedRate(toSchedule, 0, 300, MILLISECONDS);
         scheduler.schedule(new Runnable() {
             public void run() { scheduledFuture.cancel(true); }
         }, 60 * 60, SECONDS);

@@ -1,20 +1,42 @@
 package game.graphics;
 
+import game.Game;
 import game.graphics.drawElements.DrawElement;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.util.*;
 
 import javax.swing.JPanel;
+import javax.swing.Timer;
 /**
  * Created by protoCJ on 23.04.2017.
  */
-public class DisplayHandler extends JPanel {
+public class DisplayHandler extends JPanel implements ActionListener {
 
     Queue<DrawElement> drawQueue;
+    Game game;
+    private Timer timer;
+    private int delay = 10;
 
-    public DisplayHandler() {
+    public DisplayHandler(Game game) {
+        this.game = game;
         drawQueue = new ArrayDeque<>();
+
+        init();
+    }
+
+    public void init() {
+        addKeyListener(new TAdapter());
+        setFocusable(true);
+        setBackground(Color.BLACK);
+
+
+        timer = new Timer(delay, this);
+        timer.start();
     }
 
     @Override
@@ -25,7 +47,7 @@ public class DisplayHandler extends JPanel {
     }
 
     public void addElement(DrawElement drawElement) {
-
+        drawQueue.add(drawElement);
     }
 
     private void drawElements(Graphics g) {
@@ -47,6 +69,31 @@ public class DisplayHandler extends JPanel {
 
         while (!drawQueue.isEmpty()) {
             drawQueue.remove().draw(g2d);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        addElement(game.getPlayer());
+        repaint();
+    }
+
+    private class TAdapter extends KeyAdapter {
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+            System.out.println("Keyboard event");
+            if (e.getKeyChar() == 'a') {
+                game.rotateLeft();
+            }
+            if (e.getKeyChar() == 'd') {
+                game.rotateRight();
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ public class Player implements DrawElement {
 
     @Override
     public void draw(Graphics2D g2d) {
-
+        g2d.drawOval((int)x, (int)y, 10, 10);
+        g2d.drawString("rotation: " + Float.toString(rotation), (int)x, (int) y);
     }
 }

@@ -1,6 +1,8 @@
 package game;
 
 import game.graphics.GameWindow;
+import game.graphics.drawElements.DrawElement;
+import game.graphics.drawElements.Player;
 import game.input.ActionHandler;
 import network.ConnectionHandler;
 import network.NetworkHandler;
@@ -53,5 +55,19 @@ public class Game {
 
     public void setPlayerRotation(float playerRotation) {
         this.playerRotation = playerRotation;
+    }
+
+    public void rotateLeft() {
+        playerRotation -= 0.1f;
+        if (playerRotation < 0) playerRotation += 1;
+    }
+
+    public void rotateRight() {
+        playerRotation += 0.1f;
+        if (playerRotation > 1) playerRotation -= 1;
+    }
+
+    public DrawElement getPlayer() {
+        return new Player(100, 100, getPlayerRotation());
     }
 }
