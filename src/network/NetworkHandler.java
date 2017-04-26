@@ -13,19 +13,19 @@ public class NetworkHandler implements Runnable {
 
     private Game game;
     private DatagramSocket in;
+    private InetAddress serverAddress;
     private DatagramSocket out;
-    private String serverAddress;
     private Integer outPort;
     private boolean running;
 
-    public NetworkHandler(Game game, Integer inPortNumber, Integer outPortNumber, String address) {
+    public NetworkHandler(Game game, Integer inPortNumber, Integer outPortNumber, String address) throws UnknownHostException {
         this.game = game;
-        this.serverAddress = address;
+        this.serverAddress = InetAddress.getByName(address);
         this.outPort = outPortNumber;
         try {
             System.out.println("Creating UDP sockets.");
             in = new DatagramSocket(inPortNumber);
-            out = new DatagramSocket(outPortNumber);
+            out = new DatagramSocket();
         }
         catch (SocketException e) {
             e.printStackTrace();
@@ -35,8 +35,8 @@ public class NetworkHandler implements Runnable {
     }
 
     public void send(byte[] data) throws IOException {
-        out.send(new DatagramPacket(data, data.length, InetAddress.getByName(serverAddress), outPort));
-        System.out.println("Data sent: " + DatatypeConverter.printHexBinary(data));
+        out.send(new DatagramPacket(data, data.length, serverAddress, outPort));
+        System.out.println("Data sent: " + DatatypeConverter.printHexBinary(data) + " to " + serverAddress + " on port " + outPort);
     }
 
     public void stop() {
@@ -63,3 +63,4 @@ public class NetworkHandler implements Runnable {
         }
     }
 }
+
