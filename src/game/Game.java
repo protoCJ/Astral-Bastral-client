@@ -8,6 +8,7 @@ import network.ConnectionHandler;
 import network.NetworkHandler;
 
 import javax.xml.bind.DatatypeConverter;
+import java.awt.*;
 import java.io.IOException;
 
 /**
@@ -26,7 +27,7 @@ public class Game {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        playerRotation = 0.1f;
+        playerRotation = 0.0f;
         actionHandler = new ActionHandler(this);
         gameWindow = new GameWindow(this);
     }
@@ -58,16 +59,16 @@ public class Game {
     }
 
     public void rotateLeft() {
-        playerRotation -= 0.1f;
+        playerRotation -= 0.025f;
         if (playerRotation < 0) playerRotation += 1;
     }
 
     public void rotateRight() {
-        playerRotation += 0.1f;
+        playerRotation += 0.025f;
         if (playerRotation > 1) playerRotation -= 1;
     }
 
     public DrawElement getPlayer() {
-        return new Player(100, 100, getPlayerRotation());
+        return new Player(100, 100, getPlayerRotation(), Color.blue);
     }
 }

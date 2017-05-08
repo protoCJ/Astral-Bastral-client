@@ -8,7 +8,6 @@ import java.util.Queue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.TimeUnit.*;
 
@@ -18,17 +17,17 @@ import static java.util.concurrent.TimeUnit.*;
 public class ActionHandler implements Runnable {
 
     Game game;
-    Queue<UserAction> userInputQueue;
+    Queue<UserAction> userActionQueue;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     public ActionHandler(Game game) {
         this.game = game;
-        userInputQueue = new ArrayDeque<>();
+        userActionQueue = new ArrayDeque<>();
     }
 
     public void addToInputQueue(UserAction userInput) {
-        userInputQueue.add(userInput);
+        userActionQueue.add(userInput);
     }
 
     public void start() {

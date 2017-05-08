@@ -26,7 +26,7 @@ public class GameWindow extends JFrame {
 
         add(new DisplayHandler(game));
 
-        setSize(640, 480);
+        setSize(1024, 768);
 
         setTitle("Astral Bastral");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
