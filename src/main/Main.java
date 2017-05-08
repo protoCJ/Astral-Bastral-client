@@ -1,7 +1,6 @@
 package main;
 
 import game.Game;
-import game.graphics.GameWindow;
 
 
 /**
