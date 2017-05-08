@@ -168,8 +168,6 @@ public class Game extends Canvas {
      * This has been implemented as an inner class more through
      * habbit then anything else. Its perfectly normal to implement
      * this as seperate class if slight less convienient.
-     *
-     * @author Kevin Glass
      */
     private class KeyInputHandler extends KeyAdapter {
         /** The number of key presses we've had while waiting for an "any key" press */
