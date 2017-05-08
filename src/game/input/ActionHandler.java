@@ -44,7 +44,7 @@ public class ActionHandler implements Runnable {
     }
 
     byte[] prepareData() {
-        return ByteBuffer.allocate(4).putFloat(game.getPlayerRotation()).array();
+        return ByteBuffer.allocate(4).putFloat(7.0f/*game.getPlayerRotation()*/).array();
     }
 }
 
