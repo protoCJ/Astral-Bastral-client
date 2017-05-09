@@ -1,5 +1,6 @@
 package game;
 
+import game.entities.*;
 import game.input.ActionHandler;
 import network.ConnectionHandler;
 import network.NetworkHandler;
@@ -12,6 +13,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -36,6 +39,35 @@ public class Game extends Canvas {
     /** True if we are firing */
     private boolean firePressed = false;
 
+    // -----------------------------------------------------------------------------
+
+    // Limits for number of game entities present in-game at once and for
+    // number of players.
+    private final static int MAX_PLAYERS = 4;
+    private final static int MAX_ENTITIES = 1024;
+
+    // Unique no player value.
+    private final static int NO_PLAYER = -1;
+
+    // Number of entities send with single state refresh and last refresh
+    // window index;
+    private static final int STATE_REFRESH_SIZE = 64;
+    private static final int STATE_REFRESH_WINDOW_SIZE = 16;
+
+    // State update parameters.
+    private static final int REFRESH_BYTES_OFFSET = 32;
+
+    // Constant sizes.
+    private static final int SHORT_SIZE = 2;
+    private static final int INT_SIZE = 4;
+
+    // Arrays of all in-game entities and players. On this client-side player
+    // is represented as simple integer index to his turret in entities array.
+    private int [] players;
+    private GameEntity[] entities;
+
+    // Local player's id.
+    private int playerId;
 
 
     public Game(String hostName, Integer port) {
@@ -45,10 +77,99 @@ public class Game extends Canvas {
             e.printStackTrace();
         }
         actionHandler = new ActionHandler(this);
+
+        players = new int[MAX_PLAYERS];
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            players[i] = NO_PLAYER;
+        }
+        entities = new GameEntity[MAX_ENTITIES];
     }
 
-    public void updateState(byte[] data) {
+    public void updateState(byte[] data) throws Exception {
         System.out.println("Updating state with: " + DatatypeConverter.printHexBinary(data));
+
+        ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
+        DataInputStream input = new DataInputStream(byteStream);
+
+        playerId = input.readInt();
+        int createdOffset = input.readInt();
+        int destroyedOffset = input.readInt();
+        int refreshOffset = input.readInt();
+        int refreshIndex = input.readInt();
+        float[] rotations = new float[MAX_PLAYERS];
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            rotations[i] = input.readFloat();
+        }
+
+        int currentPosition = REFRESH_BYTES_OFFSET;
+        short readType;
+        int readBytes;
+        int readIndex;
+        GameEntity createdEntity;
+
+        // Parse created entities.
+        while (currentPosition < destroyedOffset) {
+            readIndex = input.readInt();
+            readType = input.readShort();
+            createdEntity = createFromType(readType);
+            readBytes = createdEntity.readFrom(input);
+            if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
+                players[((Turret) createdEntity).getPlayerId()] = readIndex;
+            }
+            entities[readIndex] = createdEntity;
+            currentPosition += INT_SIZE + SHORT_SIZE + readBytes;
+        }
+
+        // Parse destroyed entities.
+        while (currentPosition < refreshOffset) {
+            readIndex = input.readInt();
+            entities[readIndex] = null;
+            currentPosition += INT_SIZE;
+        }
+
+        // Parse state refresh.
+        for (int i = 0; i < STATE_REFRESH_SIZE; i++) {
+            readType = input.readShort();
+            createdEntity = createFromType(readType);
+            readBytes = createdEntity.readFrom(input);
+            if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
+                players[((Turret) createdEntity).getPlayerId()] =
+                    i + refreshIndex * STATE_REFRESH_SIZE;
+            }
+            entities[i + refreshIndex * STATE_REFRESH_SIZE] = createdEntity;
+        }
+
+        // Rotate if turret's index is valid.
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            if (
+                players[i] > 0 && players[i] < MAX_ENTITIES &&
+                entities[players[i]] != null &&
+                entities[players[i]].getType() == GameEntitiesTypes.TURRET
+            ) {
+                ((Turret) entities[players[i]]).rotate(rotations[i]);
+            }
+        }
+
+    }
+
+    // Creates new entity based on read short type value.
+    private GameEntity createFromType(short value) {
+        GameEntitiesTypes type = GameEntitiesTypes.getByValue(value);
+        switch (type) {
+            case ASTEROID:
+                return new Asteroid();
+            case ENEMY_MISSILE:
+                return new EnemyMissile();
+            case ENEMY_SHIP:
+                return new EnemyShip();
+            case MAIN_SHIP:
+                return new MainShip();
+            case FRIENDLY_MISSILE:
+                return new FriendlyMissile();
+            case TURRET:
+                return new Turret();
+        }
+        return null;
     }
 
     public void start() {

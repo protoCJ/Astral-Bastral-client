@@ -7,11 +7,22 @@ package game.entities;
  */
 public class FriendlyMissile extends Missile {
 
+    // Constant sprite key for friendly missile.
+    private static final String FRIENDLY_MISSILE_SPRITE_KEY =
+        "friendly_missile.jpg";
+
+    public FriendlyMissile() {
+        super(GameEntitiesTypes.FRIENDLY_MISSILE, FRIENDLY_MISSILE_SPRITE_KEY);
+    }
+
     public FriendlyMissile(
         MissilesTypes missileType,
         float x, float y, float rotation
     ) {
-        super(GameEntitiesTypes.FRIENDLY_MISSILE, missileType, x, y, rotation);
+        super(
+            GameEntitiesTypes.FRIENDLY_MISSILE, FRIENDLY_MISSILE_SPRITE_KEY,
+            missileType, x, y, rotation
+        );
     }
 
 }

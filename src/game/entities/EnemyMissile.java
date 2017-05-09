@@ -7,15 +7,22 @@ package game.entities;
  */
 public class EnemyMissile extends Missile {
 
+    // Constant sprite key for enemy missile.
+    private static final String ENEMY_MISSILE_SPRITE_KEY =
+        "enemy_missile.jpg";
+
     public EnemyMissile() {
-        super(GameEntitiesTypes.ENEMY_MISSILE);
+        super(GameEntitiesTypes.ENEMY_MISSILE, ENEMY_MISSILE_SPRITE_KEY);
     }
 
     public EnemyMissile(
             MissilesTypes missileType,
             float x, float y, float rotation
     ) {
-        super(GameEntitiesTypes.ENEMY_MISSILE, missileType, x, y, rotation);
+        super(
+            GameEntitiesTypes.ENEMY_MISSILE, ENEMY_MISSILE_SPRITE_KEY,
+            missileType, x, y, rotation
+        );
     }
 
 }

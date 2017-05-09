@@ -7,16 +7,16 @@ package game.entities;
  */
 public abstract class Ship extends GameEntity {
 
-    public Ship(GameEntitiesTypes type) {
-        super(type);
+    public Ship(GameEntitiesTypes type, String spriteKey) {
+        super(type, spriteKey);
     }
 
     public Ship(
-            GameEntitiesTypes type,
+            GameEntitiesTypes type, String spriteKey,
             float x, float y, float rotation,
-             float speed
+            float speed
     ) {
-        super(type, x, y, rotation, speed);
+        super(type, spriteKey, x, y, rotation, speed);
     }
 
 }

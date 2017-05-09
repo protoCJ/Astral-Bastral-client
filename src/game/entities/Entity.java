@@ -1,9 +1,11 @@
 package game.entities;
 
 import game.sprites.Sprite;
-import game.sprites.SpriteStore;
+import game.sprites.SpritesDepot;
 
 import java.awt.*;
+
+// ---------- --- -------------
 
 /**
  * An entity represents any element that appears in the game. The
@@ -36,7 +38,7 @@ public abstract class Entity {
      * @param y The initial y location of this entity
      */
     public Entity(String ref, int x, int y, double speed, double rotation) {
-        this.sprite = SpriteStore.get().getSprite(ref);
+        this.sprite = SpritesDepot.getInstance().getSpriteByKey(ref);
         this.x = x;
         this.y = y;
     }

@@ -13,29 +13,32 @@ public abstract class Missile extends GameEntity {
 
     // Temporary constant for missile speed.
     private static final float MISSILE_SPEED = (float) 5.0;
+    private static final int SHORT_SIZE = 2;
 
     protected MissilesTypes missileType;
 
 
-    public Missile(GameEntitiesTypes type) {
-        super(type);
+    public Missile(GameEntitiesTypes type, String spriteKey) {
+        super(type, spriteKey);
     }
 
     public Missile(
-            GameEntitiesTypes type, MissilesTypes missileType,
+            GameEntitiesTypes type, String spriteKey,
+            MissilesTypes missileType,
             float x, float y, float rotation
     ) {
-        super(type, x, y, rotation, MISSILE_SPEED);
+        super(type, spriteKey, x, y, rotation, MISSILE_SPEED);
         this.missileType = missileType;
     }
 
     // Method used to input entity data from input to data.
-    public void readFrom(DataInputStream input) throws IOException {
+    public int readFrom(DataInputStream input) throws IOException {
 
         // Read first missile type.
         this.missileType = MissilesTypes.getByValue(input.readShort());
 
-        super.readFrom(input);
+        int bytesRead = super.readFrom(input);
+        return bytesRead + SHORT_SIZE;
     }
 
 }

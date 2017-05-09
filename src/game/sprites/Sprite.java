@@ -3,6 +3,7 @@ package game.sprites;
 import java.awt.*;
 
 public class Sprite {
+
     private Image image;
 
     public Sprite(Image image) {

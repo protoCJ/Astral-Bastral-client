@@ -7,16 +7,17 @@ package game.entities;
  */
 public class MainShip extends Ship {
 
-    // Speed of the main ship.
+    // Speed and sprite key of the main ship.
+    private static final String MAIN_SPRITE_KEY = "main_ship.jpg";
     private static final float MAIN_SHIP_SPEED = 0.0f;
 
     public MainShip() {
-        super(GameEntitiesTypes.MAIN_SHIP);
+        super(GameEntitiesTypes.MAIN_SHIP, MAIN_SPRITE_KEY);
     }
 
     public MainShip(float x, float y, float rotation) {
         super(
-            GameEntitiesTypes.MAIN_SHIP,
+            GameEntitiesTypes.MAIN_SHIP, MAIN_SPRITE_KEY,
             x, y, rotation, MAIN_SHIP_SPEED
         );
     }
