@@ -280,7 +280,7 @@ public class Game extends Canvas {
     public void rotatePlayer(RotationDirections direction) {
         float rotation = ROTATION_INCREMENT;
         // Negate rotation for opposite direction.
-        if (direction == RotationDirections.RIGHT) {
+        if (direction == RotationDirections.LEFT) {
             rotation = -rotation;
         }
         ((Turret) entities[players[playerId]]).rotate(rotation);
