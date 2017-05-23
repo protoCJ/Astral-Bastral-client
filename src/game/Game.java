@@ -24,7 +24,7 @@ import java.util.ArrayList;
  */
 public class Game extends Canvas {
 
-    enum RotationDirections {
+    public enum RotationDirections {
         LEFT, RIGHT
     }
 
@@ -217,7 +217,7 @@ public class Game extends Canvas {
 
         // add a key input system (defined below) to our canvas
         // so we can respond to key pressed
-        addKeyListener(new KeyInputHandler());
+        addKeyListener(new KeyInputHandler(this));
 
         // request the focus so key events come to us
         requestFocus();

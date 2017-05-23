@@ -1,5 +1,7 @@
 package game.input;
 
+import game.Game;
+
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
@@ -8,9 +10,11 @@ import java.awt.event.KeyEvent;
  */
 public class KeyInputHandler extends KeyAdapter {
     /** The number of key presses we've had while waiting for an "any key" press */
-    private int pressCount = 1;
+    private Game game;
 
-    private boolean rotating = true;
+    public KeyInputHandler(Game game) {
+        this.game = game;
+    }
 
     /**
      * Notification from AWT that a key has been pressed. Note that
@@ -20,13 +24,15 @@ public class KeyInputHandler extends KeyAdapter {
      * @param e The details of the key that was pressed
      */
     public void keyPressed(KeyEvent e) {
-        //TODO
         switch (e.getKeyCode())  {
             case KeyEvent.VK_LEFT:
+                game.rotatePlayer(Game.RotationDirections.LEFT);
                 break;
             case KeyEvent.VK_RIGHT:
+                game.rotatePlayer(Game.RotationDirections.RIGHT);
                 break;
             case KeyEvent.VK_SPACE:
+                //TODO
                 break;
         }
     }
