@@ -20,7 +20,11 @@ public class Sprite {
 
     public void draw(Graphics g, int x, int y, float rotation) {
         Graphics2D tmp = (Graphics2D) g.create();
-        tmp.rotate(rotation);
+        tmp.rotate(
+            rotation,
+            x + image.getWidth(null) / 2,
+            y + image.getWidth(null) / 2
+        );
         tmp.drawImage(image, x, y,null);
         tmp.dispose();
     }
