@@ -17,6 +17,7 @@ import java.awt.image.BufferStrategy;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 /**
@@ -49,6 +50,10 @@ public class Game extends Canvas {
     private static final int STATE_REFRESH_SIZE = 64;
     private static final int STATE_REFRESH_WINDOW_SIZE = 16;
 
+    // Size of update sent to sever.
+    private static final int UPDATE_SIZE = 116;
+    private static final int MAX_MISSILES_PER_ACTION = 8;
+
     // State update parameters.
     private static final int REFRESH_BYTES_OFFSET = 32;
 
@@ -62,6 +67,9 @@ public class Game extends Canvas {
 
     // Rotation increment value.
     private static final float ROTATION_INCREMENT = 0.1f;
+
+    // Constant indicating empty rotation.
+    private static final float EMPTY_ROTATION = -1.0f;
 
     // Arrays of all in-game entities and players. On this client-side player
     // is represented as simple integer index to his turret in entities array.
@@ -91,7 +99,6 @@ public class Game extends Canvas {
     }
 
     public void updateState(byte[] data) throws Exception {
-        System.out.println("Updating state with: " + DatatypeConverter.printHexBinary(data));
 
         ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         DataInputStream input = new DataInputStream(byteStream);
@@ -263,6 +270,7 @@ public class Game extends Canvas {
 
             g.dispose();
             strategy.show();
+            sendData(getUpdateData());
 
             try { Thread.sleep(10); } catch (Exception e) {}
         }
@@ -276,6 +284,34 @@ public class Game extends Canvas {
         }
     }
 
+    // Create bytes of udpate sent to server.
+    public byte[] getUpdateData() {
+        ByteBuffer buffer = ByteBuffer.allocate(UPDATE_SIZE);
+        // If player exists send his rotation.
+        if (
+            playerId != NO_PLAYER &&
+            players[playerId] > 0 && players[playerId] < MAX_ENTITIES &&
+            entities[players[playerId]] != null &&
+            entities[players[playerId]].getType() == GameEntitiesTypes.TURRET
+        ) {
+            buffer.putFloat(
+                ((Turret) entities[players[playerId]]).getRotation()
+            );
+        }
+        else {
+            buffer.putFloat(EMPTY_ROTATION);
+        }
+        // Output empty missiles. Temporary.
+        for (int i = 0; i < MAX_MISSILES_PER_ACTION; i++) {
+            buffer.putShort(MissilesTypes.EMPTY_MISSILE.getValue());
+            buffer.putFloat(EMPTY_ROTATION);
+            buffer.putFloat(EMPTY_ROTATION);
+            buffer.putFloat(EMPTY_ROTATION);
+        }
+        buffer.flip();
+        return buffer.array();
+    }
+
     // Handler for keyboard rotation command
     public void rotatePlayer(RotationDirections direction) {
         float rotation = ROTATION_INCREMENT;
@@ -285,7 +321,5 @@ public class Game extends Canvas {
         }
         ((Turret) entities[players[playerId]]).rotate(rotation);
     }
-
-
 
 }

@@ -3,6 +3,7 @@ package game.entities;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Created by puchake on 21.03.17.
