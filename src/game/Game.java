@@ -84,6 +84,7 @@ public class Game extends Canvas {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             players[i] = NO_PLAYER;
         }
+        players[0] = 0;
         entities = new GameEntity[MAX_ENTITIES];
 
         entities[0] = new Turret(0, 0.0f, 0.0f, 0.0f);
