@@ -31,17 +31,12 @@ public class SpritesDepot {
 
             // Try to read image from hard drive.
             try {
-                System.out.println(key);
-                System.out.println(getClass().getResource("").toString());
                 URL imageUrl = getClass().getResource(key);
-                System.out.println(imageUrl.toString());
                 image = ImageIO.read(imageUrl);
             }
             catch (Exception exception) {
                 System.out.println(exception.getMessage());
                 // TODO error
-                System.out.println("KEKKEKEKEKE");
-
             }
 
             // Draw loaded image on accelerated image.

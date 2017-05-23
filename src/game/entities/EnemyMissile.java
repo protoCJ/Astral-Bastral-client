@@ -9,7 +9,7 @@ public class EnemyMissile extends Missile {
 
     // Constant sprite key for enemy missile.
     private static final String ENEMY_MISSILE_SPRITE_KEY =
-        "enemy_missile.jpg";
+        "enemy_missile.png";
 
     public EnemyMissile() {
         super(GameEntitiesTypes.ENEMY_MISSILE, ENEMY_MISSILE_SPRITE_KEY);

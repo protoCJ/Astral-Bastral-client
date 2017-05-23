@@ -8,7 +8,7 @@ package game.entities;
 public class Asteroid extends GameEntity {
 
     // Constant for asteroid.
-    private static final String ASTEROID_SPRITE_KEY = "asteroid.jpg";
+    private static final String ASTEROID_SPRITE_KEY = "asteroid.png";
     private static final float ASTEROID_SPEED = (float) 5.0;
 
     public Asteroid() {
