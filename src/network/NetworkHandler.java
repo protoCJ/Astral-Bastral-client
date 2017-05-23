@@ -58,7 +58,6 @@ public class NetworkHandler implements Runnable {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println("Data received: " + DatatypeConverter.printHexBinary(p.getData()));
             try {
                 game.updateState(p.getData());
             }

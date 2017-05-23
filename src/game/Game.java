@@ -56,7 +56,7 @@ public class Game extends Canvas {
     private static final int MAX_MISSILES_PER_ACTION = 8;
 
     // State update parameters.
-    private static final int REFRESH_BYTES_OFFSET = 32;
+    private static final int REFRESH_BYTES_OFFSET = 36;
 
     // Constant sizes.
     private static final int SHORT_SIZE = 2;
@@ -100,8 +100,6 @@ public class Game extends Canvas {
     }
 
     public void updateState(byte[] data) throws Exception {
-
-        System.out.println(Arrays.toString(data));
 
         ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         DataInputStream input = new DataInputStream(byteStream);
@@ -160,11 +158,11 @@ public class Game extends Canvas {
         // Rotate if turret's index is valid.
         for (int i = 0; i < MAX_PLAYERS; i++) {
             if (
-                players[i] > 0 && players[i] < MAX_ENTITIES &&
+                players[i] >= 0 && players[i] < MAX_ENTITIES &&
                 entities[players[i]] != null &&
                 entities[players[i]].getType() == GameEntitiesTypes.TURRET
             ) {
-                ((Turret) entities[players[i]]).rotate(rotations[i]);
+                ((Turret) entities[players[i]]).setRotation(rotations[i]);
             }
         }
 
@@ -294,7 +292,7 @@ public class Game extends Canvas {
         // If player exists send his rotation.
         if (
             playerId != NO_PLAYER &&
-            players[playerId] > 0 && players[playerId] < MAX_ENTITIES &&
+            players[playerId] >= 0 && players[playerId] < MAX_ENTITIES &&
             entities[players[playerId]] != null &&
             entities[players[playerId]].getType() == GameEntitiesTypes.TURRET
         ) {
