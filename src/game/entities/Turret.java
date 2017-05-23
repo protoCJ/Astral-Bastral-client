@@ -33,7 +33,12 @@ public class Turret extends GameEntity {
 
     // Method used to rotate turret.
     public void rotate(float rotation) {
-        this.rotation = rotation;
+        this.rotation += rotation;
+    }
+
+    // Access to currents rotation.
+    public float getRotation() {
+        return this.rotation;
     }
 
     // Might be not needed.

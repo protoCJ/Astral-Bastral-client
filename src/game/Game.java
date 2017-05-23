@@ -24,6 +24,10 @@ import java.util.ArrayList;
  */
 public class Game extends Canvas {
 
+    enum RotationDirections {
+        LEFT, RIGHT
+    }
+
     NetworkHandler networkHandler;
     ActionHandler actionHandler;
 
@@ -56,6 +60,8 @@ public class Game extends Canvas {
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
 
+    // Rotation increment value.
+    private static final float ROTATION_INCREMENT = 0.1f;
 
     // Arrays of all in-game entities and players. On this client-side player
     // is represented as simple integer index to his turret in entities array.
@@ -268,4 +274,17 @@ public class Game extends Canvas {
             e.printStackTrace();
         }
     }
+
+    // Handler for keyboard rotation command
+    public void rotatePlayer(RotationDirections direction) {
+        float rotation = ROTATION_INCREMENT;
+        // Negate rotation for opposite direction.
+        if (direction == RotationDirections.RIGHT) {
+            rotation = -rotation;
+        }
+        ((Turret) entities[players[playerId]]).rotate(rotation);
+    }
+
+
+
 }
