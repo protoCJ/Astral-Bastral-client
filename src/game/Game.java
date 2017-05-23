@@ -27,12 +27,10 @@ public class Game extends Canvas {
     NetworkHandler networkHandler;
     ActionHandler actionHandler;
 
-    /** The stragey that allows us to use accelerate page flipping */
+    /** The strategy that allows us to use accelerate page flipping */
     private BufferStrategy strategy;
     /** True if the game is currently "running", i.e. the game loop is looping */
     private boolean gameRunning = true;
-
-    // -----------------------------------------------------------------------------
 
     // Limits for number of game entities present in-game at once and for
     // number of players.
@@ -97,6 +95,7 @@ public class Game extends Canvas {
         int refreshOffset = input.readInt();
         int refreshIndex = input.readInt();
         float[] rotations = new float[MAX_PLAYERS];
+
         for (int i = 0; i < MAX_PLAYERS; i++) {
             rotations[i] = input.readFloat();
         }
@@ -242,18 +241,8 @@ public class Game extends Canvas {
         // keep looping round til the game ends
 
         while (gameRunning) {
-            // work out how long its been since the last update, this
-
-            // will be used to calculate how far the entities should
-
-            // move this loop
-
             long delta = System.currentTimeMillis() - lastLoopTime;
             lastLoopTime = System.currentTimeMillis();
-
-            // Get hold of a graphics context for the accelerated
-
-            // surface and blank it out
 
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(Color.black);
