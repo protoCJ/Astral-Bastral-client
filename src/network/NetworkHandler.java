@@ -36,7 +36,7 @@ public class NetworkHandler implements Runnable {
 
     public void send(byte[] data) throws IOException {
         out.send(new DatagramPacket(data, data.length, serverAddress, outPort));
-        System.out.println("Data sent: " + DatatypeConverter.printHexBinary(data) + " to " + serverAddress + " on port " + outPort);
+        //System.out.println("Data sent: " + DatatypeConverter.printHexBinary(data) + " to " + serverAddress + " on port " + outPort);
     }
 
     public void stop() {

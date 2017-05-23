@@ -4,15 +4,18 @@ import game.Game;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Scanner;
 
 /**
  * Created by protoCJ on 24.04.2017.
  */
 public class ConnectionHandler {
 
-    Integer inPort = 5677;
+    Integer inPort;
 
     public NetworkHandler initConnection(String hostName, Integer port, Game game) throws IOException {
+        System.out.println("Give a local port number:");
+        inPort = new Scanner(System.in).nextInt();
         System.out.println("Initiating connection on port: " + port + ", hostname: " + hostName + ".");
         Socket s = new Socket(hostName, port);
         System.out.println("Connected. Receiving UDP port for asynchronous transmission.");

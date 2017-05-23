@@ -33,9 +33,9 @@ public class ActionHandler implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("Handling actions.");
+        //System.out.println("Handling actions.");
         game.sendData(game.getUpdateData());
-        System.out.println("Handled actions.");
+        //System.out.println("Handled actions.");
 
     }
 }
