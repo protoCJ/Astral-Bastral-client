@@ -8,7 +8,7 @@ package game.entities;
 public class MainShip extends Ship {
 
     // Speed and sprite key of the main ship.
-    private static final String MAIN_SPRITE_KEY = "main_ship.jpg";
+    private static final String MAIN_SPRITE_KEY = "main_ship.png";
     private static final float MAIN_SHIP_SPEED = 0.0f;
 
     public MainShip() {
