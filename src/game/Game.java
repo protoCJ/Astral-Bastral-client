@@ -270,9 +270,10 @@ public class Game extends Canvas {
 
             g.dispose();
             strategy.show();
-            sendData(getUpdateData());
+            byte[] aaa = {'1', '2', '3', '4'};
+            sendData(aaa);
 
-            try { Thread.sleep(10); } catch (Exception e) {}
+            try { Thread.sleep(1000); } catch (Exception e) {}
         }
     }
 
