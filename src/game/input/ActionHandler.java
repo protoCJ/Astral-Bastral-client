@@ -34,13 +34,8 @@ public class ActionHandler implements Runnable {
     @Override
     public void run() {
         System.out.println("Handling actions.");
-        byte[] toSend = prepareData();
-        game.sendData(toSend);
+        game.sendData(game.getUpdateData());
         System.out.println("Handled actions.");
 
-    }
-
-    byte[] prepareData() {
-        return ByteBuffer.allocate(4).putFloat(7.0f/*game.getPlayerRotation()*/).array();
     }
 }

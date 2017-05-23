@@ -270,7 +270,6 @@ public class Game extends Canvas {
 
             g.dispose();
             strategy.show();
-            sendData(getUpdateData());
 
             try { Thread.sleep(10); } catch (Exception e) {}
         }
