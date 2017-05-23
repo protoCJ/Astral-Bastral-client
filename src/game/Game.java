@@ -246,7 +246,7 @@ public class Game extends Canvas {
 
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(Color.black);
-            g.fillRect(0,0,800,600);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
 
             for (GameEntity entity : entities) {
                 if (entity != null) {
