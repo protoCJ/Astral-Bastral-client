@@ -19,6 +19,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * Created by protoCJ on 23.04.2017.
@@ -100,6 +101,8 @@ public class Game extends Canvas {
 
     public void updateState(byte[] data) throws Exception {
 
+        System.out.println(Arrays.toString(data));
+
         ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         DataInputStream input = new DataInputStream(byteStream);
 
@@ -144,10 +147,12 @@ public class Game extends Canvas {
         for (int i = 0; i < STATE_REFRESH_SIZE; i++) {
             readType = input.readShort();
             createdEntity = createFromType(readType);
-            readBytes = createdEntity.readFrom(input);
-            if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
-                players[((Turret) createdEntity).getPlayerId()] =
-                    i + refreshIndex * STATE_REFRESH_SIZE;
+            if (createdEntity != null) {
+                readBytes = createdEntity.readFrom(input);
+                if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
+                    players[((Turret) createdEntity).getPlayerId()] =
+                       i + refreshIndex * STATE_REFRESH_SIZE;
+                }
             }
             entities[i + refreshIndex * STATE_REFRESH_SIZE] = createdEntity;
         }
