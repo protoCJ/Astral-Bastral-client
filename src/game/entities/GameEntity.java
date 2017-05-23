@@ -67,8 +67,10 @@ public abstract class GameEntity {
     }
 
     // Drawing method.
-    public void draw(Graphics graphics) {
-        sprite.draw(graphics, (int) x, (int) y, rotation);
+    public void draw(Graphics graphics, int center_x, int center_y) {
+        sprite.draw(
+            graphics, (int) x + center_x, (int) y + center_y, rotation
+        );
     }
 
     // Method used to input entity data from input to data.

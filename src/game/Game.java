@@ -61,6 +61,11 @@ public class Game extends Canvas {
     private static final int SHORT_SIZE = 2;
     private static final int INT_SIZE = 4;
 
+    // Constant dimension of the window.
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 600;
+
+
     // Arrays of all in-game entities and players. On this client-side player
     // is represented as simple integer index to his turret in entities array.
     private int [] players;
@@ -83,6 +88,8 @@ public class Game extends Canvas {
             players[i] = NO_PLAYER;
         }
         entities = new GameEntity[MAX_ENTITIES];
+
+        entities[0] = new Turret(0, 0.0f, 0.0f, 0.0f);
     }
 
     public void updateState(byte[] data) throws Exception {
@@ -220,7 +227,6 @@ public class Game extends Canvas {
         // to manage our accelerated graphics
         createBufferStrategy(2);
         strategy = getBufferStrategy();
-
         // initialise the entities in our game so there's something
         // to see at startup
         gameLoop();
@@ -259,6 +265,12 @@ public class Game extends Canvas {
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
             g.setColor(Color.black);
             g.fillRect(0,0,800,600);
+
+            for (GameEntity entity : entities) {
+                if (entity != null) {
+                    entity.draw(g, WIDTH / 2, HEIGHT / 2);
+                }
+            }
 
 
 

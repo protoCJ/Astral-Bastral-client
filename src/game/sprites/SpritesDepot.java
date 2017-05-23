@@ -8,9 +8,6 @@ import java.util.HashMap;
 
 public class SpritesDepot {
 
-    // Constant path to resources. MUST BE SET.
-    private static final String RESOURCES_PATH = "";
-
     // Singleton.
     private static SpritesDepot depot = new SpritesDepot();
     private HashMap<String, Sprite> sprites = new HashMap<>();
@@ -30,18 +27,20 @@ public class SpritesDepot {
         }
         else {
 
-            // Key is also sprite filename.
-            String spritePath = RESOURCES_PATH + key;
             BufferedImage image = null;
 
             // Try to read image from hard drive.
             try {
-                image = ImageIO.read(new URL(RESOURCES_PATH + key));
+                System.out.println(key);
+                System.out.println(getClass().getResource("").toString());
+                URL imageUrl = getClass().getResource(key);
+                System.out.println(imageUrl.toString());
+                image = ImageIO.read(imageUrl);
             }
             catch (Exception exception) {
-
+                System.out.println(exception.getMessage());
                 // TODO error
-                System.out.println("");
+                System.out.println("KEKKEKEKEKE");
 
             }
 

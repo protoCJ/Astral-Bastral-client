@@ -12,7 +12,7 @@ import java.io.IOException;
 public class Turret extends GameEntity {
 
     // Turrets constants.
-    private static final String TURRET_SPRITE_KEY = "turret.jpg";
+    private static final String TURRET_SPRITE_KEY = "turret.png";
     private static final float TURRET_SPEED = 0.0f;
     private static final int INT_SIZE = 4;
 
