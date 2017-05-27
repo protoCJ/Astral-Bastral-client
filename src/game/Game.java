@@ -26,118 +26,322 @@ import java.util.Arrays;
  */
 public class Game extends Canvas {
 
+    // Game specific enum containing allowed rotation directions.
     public enum RotationDirections {
         LEFT, RIGHT
     }
 
-    NetworkHandler networkHandler;
-    ActionHandler actionHandler;
-
-    /** The strategy that allows us to use accelerate page flipping */
-    private BufferStrategy strategy;
-    /** True if the game is currently "running", i.e. the game loop is looping */
-    private boolean gameRunning = true;
 
     // Limits for number of game entities present in-game at once and for
     // number of players.
     private final static int MAX_PLAYERS = 4;
     private final static int MAX_ENTITIES = 1024;
-
     // Unique no player value.
     private final static int NO_PLAYER = -1;
-
     // Number of entities send with single state refresh and last refresh
     // window index;
     private static final int STATE_REFRESH_SIZE = 64;
     private static final int STATE_REFRESH_WINDOW_SIZE = 16;
-
     // Size of update sent to sever.
     private static final int UPDATE_SIZE = 116;
     private static final int MAX_MISSILES_PER_ACTION = 8;
-
     // State update parameters.
     private static final int REFRESH_BYTES_OFFSET = 40;
-
     // Constant sizes.
     private static final int SHORT_SIZE = 2;
     private static final int INT_SIZE = 4;
-
     // Constant dimension of the window.
     private static final int WIDTH = 800;
     private static final int HEIGHT = 600;
-
     // Rotation increment value.
-    private static final float ROTATION_INCREMENT = 0.1f;
-
+    private static final float ROTATION_INCREMENT = 0.05f;
     // Constant indicating empty rotation.
     private static final float EMPTY_ROTATION = -1.0f;
 
+
+    // Game specific network and action handlers.
+    NetworkHandler networkHandler;
+    ActionHandler actionHandler;
+    // Game buffering strategy.
+    private BufferStrategy strategy;
+    // States whether the game is currently running.
+    private boolean gameRunning = true;
     // Arrays of all in-game entities and players. On this client-side player
     // is represented as simple integer index to his turret in entities array.
     private int [] players;
     private GameEntity[] entities;
-
     // Local player's id.
     private int playerId;
-
     // Local update index.
-    private int updateIndex;
-
-    // Counter of fired and not handled missiles.
-    private int fireCount;
-    private Object fireCountLock = new Object();
+    private int updateIndex = -1;
+    // Game input state variables and their locks.
+    private final Object rotatingLock = new Object();
+    private boolean rotating = false;
+    private RotationDirections rotationDirection;
+    private final Object firingLock = new Object();
+    private boolean firing = false;
+    // Player state variables and their locks.
+    private final Object rotationLock = new Object();
+    private float rotation = 0.0f;
+    private final Object fireCountLock = new Object();
+    private int fireCount = 0;
+    private int fireIntervalCounter = 0;
 
 
     public Game(String hostName, Integer port) {
+        // Create network and action handlers.
         try {
-            this.networkHandler = new ConnectionHandler().initConnection(hostName, port, this);
+            networkHandler = new ConnectionHandler().initConnection(
+                hostName, port, this
+            );
         } catch (IOException e) {
             e.printStackTrace();
         }
         actionHandler = new ActionHandler(this);
-
+        // Create players and entities arrays.
         players = new int[MAX_PLAYERS];
         for (int i = 0; i < MAX_PLAYERS; i++) {
             players[i] = NO_PLAYER;
         }
-        players[0] = 0;
         entities = new GameEntity[MAX_ENTITIES];
-
-        entities[0] = new Turret(0, 0.0f, 0.0f, 0.0f);
-
-        updateIndex = -1;
-        fireCount = 0;
     }
 
-    public void updateState(byte[] data) throws Exception {
+    // Checks if player with given id exists and has his own turret.
+    // TODO synchronize players, entities
+    private boolean playerExists(int playerId) {
+        return playerId != NO_PLAYER &&
+               players[playerId] >= 0 && players[playerId] < MAX_ENTITIES &&
+               entities[players[playerId]] != null &&
+               entities[players[playerId]].getType() ==
+                   GameEntitiesTypes.TURRET;
+    }
 
+    // Return turret for given player id. User must previously make sure that
+    // the turret exists by calling playerExists.
+    // TODO synchronize player, entites
+    private Turret getPlayerTurret(int playerId) {
+        return ((Turret) entities[players[playerId]]);
+    }
+
+    // #################
+    // # GAME HANDLING #
+    // #################
+
+    // Start the game.
+    public void start() {
+        (new Thread(networkHandler)).start();
+        actionHandler.start();
+        startGameLoop();
+    }
+
+    // Game window initialization.
+    private void startGameLoop() {
+        String WINDOW_TITLE = "Astral Bastral";
+        int NUMBER_OF_BUFFERS = 2;
+        // Create a main window frame.
+        JFrame container = new JFrame(WINDOW_TITLE);
+        // Set size of the window.
+        JPanel panel = (JPanel) container.getContentPane();
+        panel.setPreferredSize(new Dimension(WIDTH, HEIGHT));
+        panel.setLayout(null);
+        // Add this game to the frame as canvas.
+        setBounds(0,0, WIDTH, HEIGHT);
+        panel.add(this);
+        // Force AWT to ignore repainting.
+        setIgnoreRepaint(true);
+        // Show the window.
+        container.pack();
+        container.setResizable(false);
+        container.setVisible(true);
+        // Add listener for window exit.
+        container.addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+        // add a key input system (defined below) to our canvas
+        // so we can respond to key pressed
+        addKeyListener(new KeyInputHandler(this));
+        requestFocus();
+        // create the buffering strategy which will allow AWT
+        // to manage our accelerated graphics
+        createBufferStrategy(NUMBER_OF_BUFFERS);
+        strategy = getBufferStrategy();
+        // Start game loop.
+        gameLoop();
+    }
+
+    // Main game loop.
+    // TODO synchronize entities, playerID
+    public void gameLoop() {
+        int MILLISECONDS_DIVIDER = 1000;
+        int LOOP_SLEEP = 10;
+        // Variables used to manage the game time.
+        long delta, lastLoopTime = System.currentTimeMillis();
+        // Keep looping while the game is running.
+        while (gameRunning) {
+            // Find out the delta time of current game loop.
+            delta = System.currentTimeMillis() - lastLoopTime;
+            lastLoopTime = System.currentTimeMillis();
+            // Acquire and clear graphics context.
+            Graphics2D graphics = (Graphics2D) strategy.getDrawGraphics();
+            graphics.setColor(Color.black);
+            graphics.fillRect(0, 0, WIDTH, HEIGHT);
+            // Update rotation and fire count basing on current state.
+            handleInputState();
+            // Move and draw every entity.
+            for (GameEntity entity : entities) {
+                if (entity != null) {
+                    entity.move((float) delta / MILLISECONDS_DIVIDER);
+                    entity.draw(graphics, WIDTH / 2, HEIGHT / 2);
+                }
+            }
+            // Show updates.
+            graphics.dispose();
+            strategy.show();
+            // Sleep.
+            try {
+                Thread.sleep(LOOP_SLEEP);
+            }
+            catch (Exception exception) {
+
+            }
+        }
+    }
+
+    // Update the missiles fire count and player rotation accordingly to
+    // current input state.
+    private void handleInputState() {
+        int FIRE_INTERVAL = 20;
+        // If the player is currently rotating, update his rotation.
+        synchronized (rotatingLock) {
+            if (rotating) {
+                synchronized (rotatingLock) {
+                    rotation += rotationDirection == RotationDirections.LEFT ?
+                                -ROTATION_INCREMENT : ROTATION_INCREMENT;
+                    if (rotation < 0.0f) {
+                        rotation += 2 * Math.PI;
+                    }
+                    if (rotation > 2 * Math.PI) {
+                        rotation -= 2 * Math.PI;
+                    }
+                    // Rotate players turret locally too for smooth effect.
+                    if (playerExists(playerId)) {
+                        getPlayerTurret(playerId).setRotation(rotation);
+                    }
+                }
+            }
+        }
+        // If the player is currently firing, update the fire count.
+        synchronized (firingLock) {
+            if (firing) {
+                synchronized (fireCountLock) {
+                    if (fireIntervalCounter == 0) {
+                        fireCount += 1;
+                    }
+                    // Fire every 20 loops.
+                    fireIntervalCounter = (fireIntervalCounter + 1) %
+                    FIRE_INTERVAL;
+                }
+            }
+        }
+    }
+
+    // ##############################
+    // # SENDING AND RECEIVING DATA #
+    // ##############################
+
+    // Used to send data to game's network handler.
+    public void sendData(byte[] toSend) {
+        try {
+            networkHandler.send(toSend);
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    // Create bytes of update sent to server.
+    // TODO synchronize entites, playerID
+    public byte[] getUpdateData() {
+        // Constant offset of spawned missiles.
+        float MISSILE_SPAWN_OFFSET = 32.0f;
+        ByteBuffer buffer = ByteBuffer.allocate(UPDATE_SIZE);
+        synchronized (rotationLock) {
+            buffer.putFloat(rotation);
+            synchronized (fireCountLock) {
+                int i = 0;
+                boolean playerExists = playerExists(playerId);
+                if (playerExists) {
+                    // If player has his turret assigned to him, find out where
+                    // fired missiles will be spawned.
+                    float x, y;
+                    float dx = (float) Math.cos(rotation - Math.PI / 2);
+                    float dy = (float) Math.sin(rotation - Math.PI / 2);
+                    Turret turret = getPlayerTurret(playerId);
+                    x = turret.getX() + dx * MISSILE_SPAWN_OFFSET;
+                    y = turret.getY() + dy * MISSILE_SPAWN_OFFSET;
+                    // Output all fired missiles to buffer or as much as is
+                    // allowed per action.
+                    for ( ; i < fireCount & i < MAX_MISSILES_PER_ACTION; i++) {
+                        putMissileInBuffer(
+                            buffer, MissilesTypes.BASIC_MISSILE.getValue(),
+                            rotation, x, y
+                        );
+                    }
+                }
+                fireCount -= i;
+                for ( ; i < MAX_MISSILES_PER_ACTION; i++) {
+                    // Output empty missile to buffer. Data is irrelevant.
+                    putMissileInBuffer(
+                        buffer, MissilesTypes.EMPTY_MISSILE.getValue(),
+                        0.0f, 0.0f, 0.0f
+                    );
+                }
+            }
+        }
+        buffer.flip();
+        return buffer.array();
+    }
+
+    // Method for outputting missile data to byte buffer.
+    private void putMissileInBuffer(
+        ByteBuffer buffer, short type, float rotation, float x, float y
+    ) {
+        // Output missile data to buffer as bytes.
+        buffer.putShort(type);
+        buffer.putFloat(rotation);
+        buffer.putFloat(x);
+        buffer.putFloat(y);
+    }
+
+    // Parse local state update from data contained in provided byte array.
+    // TODO synchronize entites, player, playerID
+    public void updateState(byte[] data) throws Exception {
         ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         DataInputStream input = new DataInputStream(byteStream);
-
-        //System.out.println(updateIndex);
+        // Read update header data.
         playerId = input.readInt();
+        // It might be needed to check this.
         updateIndex = input.readInt();
         int createdOffset = input.readInt();
         int destroyedOffset = input.readInt();
         int refreshOffset = input.readInt();
         int refreshIndex = input.readInt();
+        // Read all player rotations.
         float[] rotations = new float[MAX_PLAYERS];
-
         for (int i = 0; i < MAX_PLAYERS; i++) {
             rotations[i] = input.readFloat();
         }
-
+        // Start reading the rest of update.
         int currentPosition = REFRESH_BYTES_OFFSET;
         short readType;
         int readBytes;
         int readIndex;
         GameEntity createdEntity;
-
         // Parse created entities.
         while (currentPosition < destroyedOffset) {
             readIndex = input.readInt();
             readType = input.readShort();
-            System.out.println(readType);
             createdEntity = createFromType(readType);
             readBytes = createdEntity.readFrom(input);
             if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
@@ -146,14 +350,12 @@ public class Game extends Canvas {
             entities[readIndex] = createdEntity;
             currentPosition += INT_SIZE + SHORT_SIZE + readBytes;
         }
-
         // Parse destroyed entities.
         while (currentPosition < refreshOffset) {
             readIndex = input.readInt();
             entities[readIndex] = null;
             currentPosition += INT_SIZE;
         }
-
         // Parse state refresh.
         for (int i = 0; i < STATE_REFRESH_SIZE; i++) {
             readType = input.readShort();
@@ -162,26 +364,20 @@ public class Game extends Canvas {
                 readBytes = createdEntity.readFrom(input);
                 if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
                     players[((Turret) createdEntity).getPlayerId()] =
-                       i + refreshIndex * STATE_REFRESH_SIZE;
+                    i + refreshIndex * STATE_REFRESH_SIZE;
                 }
             }
             entities[i + refreshIndex * STATE_REFRESH_SIZE] = createdEntity;
         }
-
-        // Rotate if turret's index is valid.
+        // Update very player rotation.
         for (int i = 0; i < MAX_PLAYERS; i++) {
-            if (
-                players[i] >= 0 && players[i] < MAX_ENTITIES &&
-                entities[players[i]] != null &&
-                entities[players[i]].getType() == GameEntitiesTypes.TURRET
-            ) {
-                ((Turret) entities[players[i]]).setRotation(rotations[i]);
+            if (playerExists(i)) {
+                getPlayerTurret(i).setRotation(rotations[i]);
             }
         }
-
     }
 
-    // Creates new entity based on read short type value.
+    // Creates new entity based on read, short type value.
     private GameEntity createFromType(short value) {
         GameEntitiesTypes type = GameEntitiesTypes.getByValue(value);
         switch (type) {
@@ -201,159 +397,50 @@ public class Game extends Canvas {
         return null;
     }
 
-    public void start() {
-        (new Thread(networkHandler)).start();
-        actionHandler.start();
-        startGameLoop();
+    // #######################
+    // # HANDLING USER INPUT #
+    // #######################
+
+    // Start rotating in given direction.
+    public void startRotating(RotationDirections direction) {
+        synchronized (rotatingLock) {
+            rotating = true;
+            rotationDirection = direction;
+        }
     }
 
-    private void startGameLoop() {
-        // create a frame to contain our game
-        JFrame container = new JFrame("Astral Bastral");
-
-        // get hold the content of the frame and set up the resolution of the game
-        JPanel panel = (JPanel) container.getContentPane();
-        panel.setPreferredSize(new Dimension(800,600));
-        panel.setLayout(null);
-
-        // setup our canvas size and put it into the content of the frame
-        setBounds(0,0,800,600);
-        panel.add(this);
-
-        // Tell AWT not to bother repainting our canvas since we're
-        // going to do that our self in accelerated mode
-        setIgnoreRepaint(true);
-
-        // finally make the window visible
-        container.pack();
-        container.setResizable(false);
-        container.setVisible(true);
-
-        // add a listener to respond to the user closing the window. If they
-        // do we'd like to exit the game
-
-        container.addWindowListener(new WindowAdapter() {
-            public void windowClosing(WindowEvent e) {
-                System.exit(0);
+    // Stop rotation if direction of stopping matches current rotation
+    // direction.
+    public void stopRotating(RotationDirections direction) {
+        synchronized (rotatingLock) {
+            if (direction == rotationDirection) {
+                rotating = false;
             }
-        });
-
-        // add a key input system (defined below) to our canvas
-        // so we can respond to key pressed
-        addKeyListener(new KeyInputHandler(this));
-
-        // request the focus so key events come to us
-        requestFocus();
-
-        // create the buffering strategy which will allow AWT
-        // to manage our accelerated graphics
-        createBufferStrategy(2);
-        strategy = getBufferStrategy();
-        // initialise the entities in our game so there's something
-        // to see at startup
-        gameLoop();
+        }
     }
 
-    /**
-     * The main game loop. This loop is running during all game
-     * play as is responsible for the following activities:
-     * <p>
-     * - Working out the speed of the game loop to update moves
-     * - Moving the game entities
-     * - Drawing the screen contents (entities, text)
-     * - Updating game events
-     * - Checking Input
-     * <p>
-     */
-    public void gameLoop() {
-        long delta, lastLoopTime = System.currentTimeMillis();
-        int timeDivier = 1000;
-        // keep looping round til the game ends
-
-        while (gameRunning) {
-            delta = System.currentTimeMillis() - lastLoopTime;
-            lastLoopTime = System.currentTimeMillis();
-
-            Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
-            g.setColor(Color.black);
-            g.fillRect(0, 0, WIDTH, HEIGHT);
-
-            for (GameEntity entity : entities) {
-                if (entity != null) {
-                    entity.move((float) delta / timeDivier);
-                    entity.draw(g, WIDTH / 2, HEIGHT / 2);
-                }
+    // Start firing the player's turret.
+    public void startFiring() {
+        synchronized (firingLock) {
+            if (!firing) {
+                firing = true;
+                fireIntervalCounter = 0;
             }
-
-            g.dispose();
-            strategy.show();
-
-            try { Thread.sleep(10); } catch (Exception e) {}
         }
     }
 
-    public void sendData(byte[] toSend) {
-        try {
-            networkHandler.send(toSend);
-        } catch (IOException e) {
-            e.printStackTrace();
+    // Stop firing the player's turret.
+    public void stopFiring() {
+        synchronized (firingLock) {
+            firing = false;
         }
     }
 
-    // Create bytes of udpate sent to server.
-    public byte[] getUpdateData() {
-        ByteBuffer buffer = ByteBuffer.allocate(UPDATE_SIZE);
-        // If player exists send his rotation.
-        if (
-            playerId != NO_PLAYER &&
-            players[playerId] >= 0 && players[playerId] < MAX_ENTITIES &&
-            entities[players[playerId]] != null &&
-            entities[players[playerId]].getType() == GameEntitiesTypes.TURRET
-        ) {
-            buffer.putFloat(
-                ((Turret) entities[players[playerId]]).getRotation()
-            );
-        }
-        else {
-            buffer.putFloat(EMPTY_ROTATION);
-        }
+    // Fire one missile.
+    public void fireOnce() {
         synchronized (fireCountLock) {
-            //System.out.println("FC: " + fireCount);
-            for (int i = 0; i < fireCount; i++) {
-                buffer.putShort(MissilesTypes.BASIC_MISSILE.getValue());
-                buffer.putFloat((
-                (Turret) entities[players[playerId]]).getRotation()
-                );
-                buffer.putFloat(100);
-                buffer.putFloat(100);
-
-            }
-            // Output empty missiles. Temporary.
-            for (int i = fireCount; i < MAX_MISSILES_PER_ACTION; i++) {
-                buffer.putShort(MissilesTypes.EMPTY_MISSILE.getValue());
-                buffer.putFloat(EMPTY_ROTATION);
-                buffer.putFloat(EMPTY_ROTATION);
-                buffer.putFloat(EMPTY_ROTATION);
-            }
-            fireCount = 0;
-        }
-        buffer.flip();
-        return buffer.array();
-    }
-
-    // Handler for keyboard rotation command
-    public void rotatePlayer(RotationDirections direction) {
-        float rotation = ROTATION_INCREMENT;
-        // Negate rotation for opposite direction.
-        if (direction == RotationDirections.LEFT) {
-            rotation = -rotation;
-        }
-        ((Turret) entities[players[playerId]]).rotate(rotation);
-    }
-
-    public void fireTurret() {
-        synchronized (fireCountLock) {
-            fireCount++;
+            fireCount += 1;
+            fireIntervalCounter = 0;
         }
     }
 

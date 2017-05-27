@@ -58,6 +58,14 @@ public abstract class GameEntity {
         return type;
     }
 
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
     // Base method used for entity movement.
     public void move(float deltaTime) {
         x += speed * dx * deltaTime;

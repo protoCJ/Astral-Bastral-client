@@ -9,8 +9,10 @@ import java.awt.event.KeyEvent;
  * Created by vivace on 23.05.17.
  */
 public class KeyInputHandler extends KeyAdapter {
-    /** The number of key presses we've had while waiting for an "any key" press */
+
+    // Game instance, which is target for handled key actions.
     private Game game;
+
 
     public KeyInputHandler(Game game) {
         this.game = game;
@@ -19,20 +21,21 @@ public class KeyInputHandler extends KeyAdapter {
     /**
      * Notification from AWT that a key has been pressed. Note that
      * a key being pressed is equal to being pushed down but *NOT*
-     * released. Thats where keyTyped() comes in.
+     * released. That's where keyTyped() comes in.
      *
-     * @param e The details of the key that was pressed
+     * @param event The details of the key that was pressed
      */
-    public void keyPressed(KeyEvent e) {
-        switch (e.getKeyCode())  {
+    public void keyPressed(KeyEvent event) {
+        // Change game state when left, right or space key is pressed.
+        switch (event.getKeyCode())  {
             case KeyEvent.VK_LEFT:
-                game.rotatePlayer(Game.RotationDirections.LEFT);
+                game.startRotating(Game.RotationDirections.LEFT);
                 break;
             case KeyEvent.VK_RIGHT:
-                game.rotatePlayer(Game.RotationDirections.RIGHT);
+                game.startRotating(Game.RotationDirections.RIGHT);
                 break;
             case KeyEvent.VK_SPACE:
-                game.fireTurret();
+                game.startFiring();
                 break;
         }
     }
@@ -40,20 +43,41 @@ public class KeyInputHandler extends KeyAdapter {
     /**
      * Notification from AWT that a key has been released.
      *
-     * @param e The details of the key that was released
+     * @param event The details of the key that was released
      */
-    public void keyReleased(KeyEvent e) {
+    public void keyReleased(KeyEvent event) {
+        // Also change the game state when left, right or space key is
+        // released.
+        switch (event.getKeyCode())  {
+            case KeyEvent.VK_LEFT:
+                game.stopRotating(Game.RotationDirections.LEFT);
+                break;
+            case KeyEvent.VK_RIGHT:
+                game.stopRotating(Game.RotationDirections.RIGHT);
+                break;
+            case KeyEvent.VK_SPACE:
+                game.stopFiring();
+                break;
+        }
     }
 
     /**
      * Notification from AWT that a key has been typed. Note that
      * typing a key means to both press and then release it.
      *
-     * @param e The details of the key that was typed.
+     * @param event The details of the key that was typed.
      */
-    public void keyTyped(KeyEvent e) {
-        if (e.getKeyChar() == 27) {
-            System.exit(0);
+    // TODO not working properly. Was patched around with press event.
+    public void keyTyped(KeyEvent event) {
+        // Exit when "escape" was type and fire single missile with space type.
+        switch (event.getKeyCode()) {
+            case KeyEvent.VK_SPACE:
+                game.fireOnce();
+                break;
+            case KeyEvent.VK_ESCAPE:
+                System.exit(0);
+                break;
         }
     }
+
 }
