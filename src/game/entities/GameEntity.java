@@ -75,7 +75,8 @@ public abstract class GameEntity {
     // Drawing method.
     public void draw(Graphics graphics, int center_x, int center_y) {
         sprite.draw(
-            graphics, (int) x + center_x, (int) y + center_y, rotation
+            graphics, (int) x + center_x, (int) y + center_y,
+            rotation + (float) Math.PI / 2
         );
     }
 
@@ -86,8 +87,8 @@ public abstract class GameEntity {
         this.rotation = input.readFloat();
 
         // Derive coordinates of movement direction vector from rotation.
-        this.dx = (float) Math.cos(rotation - Math.PI / 2);
-        this.dy = (float) Math.sin(rotation - Math.PI / 2);
+        this.dx = (float) Math.cos(rotation);
+        this.dy = (float) Math.sin(rotation);
 
         return BYTES_PER_GAME_ENTITY;
     }

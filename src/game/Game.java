@@ -3,6 +3,8 @@ package game;
 import game.entities.*;
 import game.input.ActionHandler;
 import game.input.KeyInputHandler;
+import game.sprites.Sprite;
+import game.sprites.SpritesDepot;
 import network.ConnectionHandler;
 import network.NetworkHandler;
 
@@ -57,6 +59,8 @@ public class Game extends Canvas {
     private static final float ROTATION_INCREMENT = 0.05f;
     // Constant indicating empty rotation.
     private static final float EMPTY_ROTATION = -1.0f;
+    // Key of background sprite.
+    private static final String BACKGROUND_SPRITE_KEY = "background.png";
 
 
     // Game specific network and action handlers.
@@ -86,6 +90,8 @@ public class Game extends Canvas {
     private final Object fireCountLock = new Object();
     private int fireCount = 0;
     private int fireIntervalCounter = 0;
+    // Game window background.
+    private Sprite background;
 
 
     public Game(String hostName, Integer port) {
@@ -104,6 +110,10 @@ public class Game extends Canvas {
             players[i] = NO_PLAYER;
         }
         entities = new GameEntity[MAX_ENTITIES];
+        // Load background sprite.
+        background = SpritesDepot.getInstance().getSpriteByKey(
+            BACKGROUND_SPRITE_KEY
+        );
     }
 
     // Checks if player with given id exists and has his own turret.
@@ -185,13 +195,14 @@ public class Game extends Canvas {
             lastLoopTime = System.currentTimeMillis();
             // Acquire and clear graphics context.
             Graphics2D graphics = (Graphics2D) strategy.getDrawGraphics();
-            graphics.setColor(Color.black);
-            graphics.fillRect(0, 0, WIDTH, HEIGHT);
+            background.draw(graphics, 0, 0, 0);
             // Update rotation and fire count basing on current state.
             handleInputState();
             // Move and draw every entity.
             for (GameEntity entity : entities) {
                 if (entity != null) {
+                    if (entity.getType() == GameEntitiesTypes.ASTEROID) {
+                    }
                     entity.move((float) delta / MILLISECONDS_DIVIDER);
                     entity.draw(graphics, WIDTH / 2, HEIGHT / 2);
                 }
@@ -212,7 +223,7 @@ public class Game extends Canvas {
     // Update the missiles fire count and player rotation accordingly to
     // current input state.
     private void handleInputState() {
-        int FIRE_INTERVAL = 20;
+        int FIRE_INTERVAL = 15;
         // If the player is currently rotating, update his rotation.
         synchronized (rotatingLock) {
             if (rotating) {
@@ -239,7 +250,7 @@ public class Game extends Canvas {
                     if (fireIntervalCounter == 0) {
                         fireCount += 1;
                     }
-                    // Fire every 20 loops.
+                    // Fire every 15 loops.
                     fireIntervalCounter = (fireIntervalCounter + 1) %
                     FIRE_INTERVAL;
                 }
@@ -275,8 +286,8 @@ public class Game extends Canvas {
                     // If player has his turret assigned to him, find out where
                     // fired missiles will be spawned.
                     float x, y;
-                    float dx = (float) Math.cos(rotation - Math.PI / 2);
-                    float dy = (float) Math.sin(rotation - Math.PI / 2);
+                    float dx = (float) Math.cos(rotation);
+                    float dy = (float) Math.sin(rotation);
                     Turret turret = getPlayerTurret(playerId);
                     x = turret.getX() + dx * MISSILE_SPAWN_OFFSET;
                     y = turret.getY() + dy * MISSILE_SPAWN_OFFSET;

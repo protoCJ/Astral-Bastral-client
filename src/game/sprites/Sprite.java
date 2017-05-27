@@ -23,7 +23,7 @@ public class Sprite {
      * @param rotation value in radians by which image should be rotated
      */
     public void draw(Graphics graphics, int x, int y, float rotation) {
-        // Copy grapfics context.
+        // Copy graphics context.
         Graphics2D graphicsCopy = (Graphics2D) graphics.create();
         // Draw rotated and translated image represented by this Sprite.
         graphicsCopy.rotate(
