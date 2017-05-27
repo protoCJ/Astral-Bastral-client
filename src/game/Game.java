@@ -56,7 +56,7 @@ public class Game extends Canvas {
     private static final int MAX_MISSILES_PER_ACTION = 8;
 
     // State update parameters.
-    private static final int REFRESH_BYTES_OFFSET = 36;
+    private static final int REFRESH_BYTES_OFFSET = 40;
 
     // Constant sizes.
     private static final int SHORT_SIZE = 2;
@@ -80,6 +80,13 @@ public class Game extends Canvas {
     // Local player's id.
     private int playerId;
 
+    // Local update index.
+    private int updateIndex;
+
+    // Counter of fired and not handled missiles.
+    private int fireCount;
+    private Object fireCountLock = new Object();
+
 
     public Game(String hostName, Integer port) {
         try {
@@ -97,6 +104,9 @@ public class Game extends Canvas {
         entities = new GameEntity[MAX_ENTITIES];
 
         entities[0] = new Turret(0, 0.0f, 0.0f, 0.0f);
+
+        updateIndex = -1;
+        fireCount = 0;
     }
 
     public void updateState(byte[] data) throws Exception {
@@ -104,7 +114,9 @@ public class Game extends Canvas {
         ByteArrayInputStream byteStream = new ByteArrayInputStream(data);
         DataInputStream input = new DataInputStream(byteStream);
 
+        //System.out.println(updateIndex);
         playerId = input.readInt();
+        updateIndex = input.readInt();
         int createdOffset = input.readInt();
         int destroyedOffset = input.readInt();
         int refreshOffset = input.readInt();
@@ -125,6 +137,7 @@ public class Game extends Canvas {
         while (currentPosition < destroyedOffset) {
             readIndex = input.readInt();
             readType = input.readShort();
+            System.out.println(readType);
             createdEntity = createFromType(readType);
             readBytes = createdEntity.readFrom(input);
             if (createdEntity.getType() == GameEntitiesTypes.TURRET) {
@@ -253,12 +266,12 @@ public class Game extends Canvas {
      * <p>
      */
     public void gameLoop() {
-        long lastLoopTime = System.currentTimeMillis();
-
+        long delta, lastLoopTime = System.currentTimeMillis();
+        int timeDivier = 1000;
         // keep looping round til the game ends
 
         while (gameRunning) {
-            long delta = System.currentTimeMillis() - lastLoopTime;
+            delta = System.currentTimeMillis() - lastLoopTime;
             lastLoopTime = System.currentTimeMillis();
 
             Graphics2D g = (Graphics2D) strategy.getDrawGraphics();
@@ -267,6 +280,7 @@ public class Game extends Canvas {
 
             for (GameEntity entity : entities) {
                 if (entity != null) {
+                    entity.move((float) delta / timeDivier);
                     entity.draw(g, WIDTH / 2, HEIGHT / 2);
                 }
             }
@@ -303,12 +317,25 @@ public class Game extends Canvas {
         else {
             buffer.putFloat(EMPTY_ROTATION);
         }
-        // Output empty missiles. Temporary.
-        for (int i = 0; i < MAX_MISSILES_PER_ACTION; i++) {
-            buffer.putShort(MissilesTypes.EMPTY_MISSILE.getValue());
-            buffer.putFloat(EMPTY_ROTATION);
-            buffer.putFloat(EMPTY_ROTATION);
-            buffer.putFloat(EMPTY_ROTATION);
+        synchronized (fireCountLock) {
+            //System.out.println("FC: " + fireCount);
+            for (int i = 0; i < fireCount; i++) {
+                buffer.putShort(MissilesTypes.BASIC_MISSILE.getValue());
+                buffer.putFloat((
+                (Turret) entities[players[playerId]]).getRotation()
+                );
+                buffer.putFloat(100);
+                buffer.putFloat(100);
+
+            }
+            // Output empty missiles. Temporary.
+            for (int i = fireCount; i < MAX_MISSILES_PER_ACTION; i++) {
+                buffer.putShort(MissilesTypes.EMPTY_MISSILE.getValue());
+                buffer.putFloat(EMPTY_ROTATION);
+                buffer.putFloat(EMPTY_ROTATION);
+                buffer.putFloat(EMPTY_ROTATION);
+            }
+            fireCount = 0;
         }
         buffer.flip();
         return buffer.array();
@@ -322,6 +349,12 @@ public class Game extends Canvas {
             rotation = -rotation;
         }
         ((Turret) entities[players[playerId]]).rotate(rotation);
+    }
+
+    public void fireTurret() {
+        synchronized (fireCountLock) {
+            fireCount++;
+        }
     }
 
 }

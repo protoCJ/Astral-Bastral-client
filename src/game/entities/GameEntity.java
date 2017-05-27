@@ -50,8 +50,8 @@ public abstract class GameEntity {
         this.speed = speed;
 
         // Derive coordinates of movement direction vector from rotation.
-        this.dx = (float) Math.cos(rotation);
-        this.dy = (float) Math.sin(rotation);
+        this.dx = (float) Math.cos(rotation - Math.PI / 2);
+        this.dy = (float) Math.sin(rotation - Math.PI / 2);
     }
 
     public GameEntitiesTypes getType() {
@@ -59,9 +59,9 @@ public abstract class GameEntity {
     }
 
     // Base method used for entity movement.
-    public void move() {
-        x += speed * dx;
-        y += speed * dy;
+    public void move(float deltaTime) {
+        x += speed * dx * deltaTime;
+        y += speed * dy * deltaTime;
     }
 
     // Drawing method.
@@ -76,11 +76,10 @@ public abstract class GameEntity {
         this.x = input.readFloat();
         this.y = input.readFloat();
         this.rotation = input.readFloat();
-        this.speed = input.readFloat();
 
         // Derive coordinates of movement direction vector from rotation.
-        this.dx = (float) Math.cos(rotation);
-        this.dy = (float) Math.sin(rotation);
+        this.dx = (float) Math.cos(rotation - Math.PI / 2);
+        this.dy = (float) Math.sin(rotation - Math.PI / 2);
 
         return BYTES_PER_GAME_ENTITY;
     }

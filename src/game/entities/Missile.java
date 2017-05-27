@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 public abstract class Missile extends GameEntity {
 
     // Temporary constant for missile speed.
-    private static final float MISSILE_SPEED = (float) 5.0;
+    private static final float MISSILE_SPEED = (float) 100.0;
     private static final int SHORT_SIZE = 2;
 
     protected MissilesTypes missileType;
@@ -37,6 +37,7 @@ public abstract class Missile extends GameEntity {
 
         // Read first missile type.
         this.missileType = MissilesTypes.getByValue(input.readShort());
+        this.speed = MISSILE_SPEED;
 
         int bytesRead = super.readFrom(input);
         return bytesRead + SHORT_SIZE;

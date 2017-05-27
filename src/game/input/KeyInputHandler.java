@@ -32,7 +32,7 @@ public class KeyInputHandler extends KeyAdapter {
                 game.rotatePlayer(Game.RotationDirections.RIGHT);
                 break;
             case KeyEvent.VK_SPACE:
-                //TODO
+                game.fireTurret();
                 break;
         }
     }
