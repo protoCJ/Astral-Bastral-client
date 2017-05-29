@@ -5,6 +5,7 @@ import game.Game;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Scanner;
 
 /**
@@ -17,8 +18,11 @@ public class ConnectionHandler {
     public NetworkHandler initConnection(String hostName, int port, Game game) throws IOException {
         readLocalPorts();
         int peerPort = exchangeUDPPorts(hostName, port);
+        if (peerPort == Ports.NO_PORT) {
+            throw new SocketException("No place for you on this server");
+        }
         InetAddress address = InetAddress.getByName(hostName);
-        UDPAccessPoint accessPoint = new UDPAccessPoint(portIn, portOut, peerPort, address, 300);
+        UDPAccessPoint accessPoint = new UDPAccessPoint(portIn, portOut, peerPort, address, 1024);
 
         return new NetworkHandler(game, accessPoint);
     }
