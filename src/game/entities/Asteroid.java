@@ -55,7 +55,7 @@ public class Asteroid extends GameEntity {
             innerRotation + (float) Math.PI / 2
         );
         //TODO life
-        LifeLabelDrawer.drawLabel(graphics, center_x + (int)x, center_y + (int)y, 0.8);
+        //LifeLabelDrawer.drawLabel(graphics, center_x + (int)x, center_y + (int)y, 0.8);
     }
 
     @Override

@@ -31,6 +31,6 @@ public class EnemyShip extends Ship {
     public void draw(Graphics graphics, int center_x, int center_y) {
         super.draw(graphics, center_x, center_y);
         //TODO life
-        LifeLabelDrawer.drawLabel(graphics, center_x + (int)x, center_y + (int)y, 0.8);
+        //LifeLabelDrawer.drawLabel(graphics, center_x + (int)x, center_y + (int)y, 0.8);
     }
 }
