@@ -2,6 +2,8 @@ package main;
 
 import game.Game;
 
+import java.util.Scanner;
+
 
 /**
  * Created by protoCJ on 23.04.2017.
@@ -9,7 +11,8 @@ import game.Game;
 public class Main {
     public static void main(String[] args) {
         Game g;
-        g = new Game("localhost", 9090);
+        String host = new Scanner(System.in).nextLine();
+        g = new Game(host, 9090);
         g.start();
     }
 }
