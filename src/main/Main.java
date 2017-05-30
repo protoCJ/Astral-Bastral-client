@@ -11,6 +11,7 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Game g;
+        System.out.println("Give server address:");
         String host = new Scanner(System.in).nextLine();
         g = new Game(host, 9090);
         g.start();
