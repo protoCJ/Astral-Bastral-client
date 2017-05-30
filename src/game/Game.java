@@ -48,7 +48,7 @@ public class Game extends Canvas {
     private static final int UPDATE_SIZE = 116;
     private static final int MAX_MISSILES_PER_ACTION = 8;
     // State update parameters.
-    private static final int REFRESH_BYTES_OFFSET = 40;
+    private static final int REFRESH_BYTES_OFFSET = 44;
     // Constant sizes.
     private static final int SHORT_SIZE = 2;
     private static final int INT_SIZE = 4;
@@ -59,8 +59,9 @@ public class Game extends Canvas {
     private static final float ROTATION_INCREMENT = 0.05f;
     // Constant indicating empty rotation.
     private static final float EMPTY_ROTATION = -1.0f;
-    // Key of background sprite.
+    // Key of background sprite and hp bar.
     private static final String BACKGROUND_SPRITE_KEY = "background.png";
+    private static final String HP_BAR_SPRITE_KEY = "hp_bar.png";
 
 
     // Game specific network and action handlers.
@@ -90,8 +91,11 @@ public class Game extends Canvas {
     private final Object fireCountLock = new Object();
     private int fireCount = 0;
     private int fireIntervalCounter = 0;
-    // Game window background.
+    // Game window background and hp bar.
     private Sprite background;
+    private Sprite hpBar;
+    // Main ship hp.
+    private int mainShipHp = 10000;
 
 
     public Game(String hostName, Integer port) {
@@ -113,6 +117,9 @@ public class Game extends Canvas {
         // Load background sprite.
         background = SpritesDepot.getInstance().getSpriteByKey(
             BACKGROUND_SPRITE_KEY
+        );
+        hpBar = SpritesDepot.getInstance().getSpriteByKey(
+            HP_BAR_SPRITE_KEY
         );
     }
 
@@ -207,6 +214,11 @@ public class Game extends Canvas {
                     entity.draw(graphics, WIDTH / 2, HEIGHT / 2);
                 }
             }
+            graphics.setColor(Color.DARK_GRAY);
+            graphics.fillRect(WIDTH / 2 - 194, HEIGHT / 20 - 6, 391, 12);
+            graphics.setColor(Color.RED);
+            graphics.fillRect(WIDTH / 2 - 194, HEIGHT / 20 - 6, 391 * mainShipHp / 10000, 12);
+            hpBar.draw(graphics, WIDTH / 2, HEIGHT / 20, 0);
             // Show updates.
             graphics.dispose();
             strategy.show();
@@ -218,6 +230,11 @@ public class Game extends Canvas {
 
             }
         }
+        // Show end game.
+        Graphics2D graphics = (Graphics2D) strategy.getDrawGraphics();
+
+        graphics.dispose();
+        strategy.show();
     }
 
     // Update the missiles fire count and player rotation accordingly to
@@ -334,6 +351,7 @@ public class Game extends Canvas {
         playerId = input.readInt();
         // It might be needed to check this.
         updateIndex = input.readInt();
+        mainShipHp = input.readInt();
         int createdOffset = input.readInt();
         int destroyedOffset = input.readInt();
         int refreshOffset = input.readInt();
