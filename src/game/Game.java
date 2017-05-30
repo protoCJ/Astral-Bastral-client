@@ -48,7 +48,7 @@ public class Game extends Canvas {
     private static final int UPDATE_SIZE = 116;
     private static final int MAX_MISSILES_PER_ACTION = 8;
     // State update parameters.
-    private static final int REFRESH_BYTES_OFFSET = 44;
+    private static final int REFRESH_BYTES_OFFSET = 60;
     // Constant sizes.
     private static final int SHORT_SIZE = 2;
     private static final int INT_SIZE = 4;
@@ -62,6 +62,8 @@ public class Game extends Canvas {
     // Key of background sprite and hp bar.
     private static final String BACKGROUND_SPRITE_KEY = "background.png";
     private static final String HP_BAR_SPRITE_KEY = "hp_bar.png";
+    // Max main ship hp.
+    private static final int MAX_MAIN_SHIP_HP = 5000;
 
 
     // Game specific network and action handlers.
@@ -96,6 +98,8 @@ public class Game extends Canvas {
     private Sprite hpBar;
     // Main ship hp.
     private int mainShipHp = 10000;
+    // This player score.
+    private int score = 0;
 
 
     public Game(String hostName, Integer port) {
@@ -217,8 +221,9 @@ public class Game extends Canvas {
             graphics.setColor(Color.DARK_GRAY);
             graphics.fillRect(WIDTH / 2 - 194, HEIGHT / 20 - 6, 391, 12);
             graphics.setColor(Color.RED);
-            graphics.fillRect(WIDTH / 2 - 194, HEIGHT / 20 - 6, 391 * mainShipHp / 10000, 12);
+            graphics.fillRect(WIDTH / 2 - 194, HEIGHT / 20 - 6, 391 * mainShipHp / MAX_MAIN_SHIP_HP, 12);
             hpBar.draw(graphics, WIDTH / 2, HEIGHT / 20, 0);
+            graphics.drawString("Score: " + score, 10, 10);
             // Show updates.
             graphics.dispose();
             strategy.show();
@@ -361,6 +366,11 @@ public class Game extends Canvas {
         for (int i = 0; i < MAX_PLAYERS; i++) {
             rotations[i] = input.readFloat();
         }
+        int[] scores = new int[MAX_PLAYERS];
+        for (int i = 0; i < MAX_PLAYERS; i++) {
+            scores[i] = input.readInt();
+        }
+        score = scores[playerId];
         // Start reading the rest of update.
         int currentPosition = REFRESH_BYTES_OFFSET;
         short readType;
