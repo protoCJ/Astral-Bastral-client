@@ -195,7 +195,7 @@ public class Game extends Canvas {
             lastLoopTime = System.currentTimeMillis();
             // Acquire and clear graphics context.
             Graphics2D graphics = (Graphics2D) strategy.getDrawGraphics();
-            background.draw(graphics, 0, 0, 0);
+            background.draw(graphics, WIDTH / 2, HEIGHT / 2, 0);
             // Update rotation and fire count basing on current state.
             handleInputState();
             // Move and draw every entity.

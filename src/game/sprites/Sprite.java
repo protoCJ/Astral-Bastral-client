@@ -28,10 +28,10 @@ public class Sprite {
         // Draw rotated and translated image represented by this Sprite.
         graphicsCopy.rotate(
             rotation,
-            x + image.getWidth(null) / 2,
-            y + image.getWidth(null) / 2
+            x,
+            y
         );
-        graphicsCopy.drawImage(image, x, y,null);
+        graphicsCopy.drawImage(image, x - image.getWidth(null) / 2, y - image.getHeight(null) / 2,null);
         graphicsCopy.dispose();
     }
 }

@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 public abstract class GameEntity {
 
-    private static final int BYTES_PER_GAME_ENTITY = 16;
+    private static final int BYTES_PER_GAME_ENTITY = 12;
 
 
     protected GameEntitiesTypes type;

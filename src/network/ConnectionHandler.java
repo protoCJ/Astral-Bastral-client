@@ -22,7 +22,7 @@ public class ConnectionHandler {
             throw new SocketException("No place for you on this server");
         }
         InetAddress address = InetAddress.getByName(hostName);
-        UDPAccessPoint accessPoint = new UDPAccessPoint(portIn, portOut, peerPort, address, 1024);
+        UDPAccessPoint accessPoint = new UDPAccessPoint(portIn, portOut, peerPort, address, 4096);
 
         return new NetworkHandler(game, accessPoint);
     }
