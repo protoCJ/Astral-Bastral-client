@@ -1,5 +1,7 @@
 package game.entities;
 
+import java.awt.*;
+
 /**
  * Created by micha on 22.04.2017.
  *
@@ -25,4 +27,10 @@ public class EnemyShip extends Ship {
         );
     }
 
+    @Override
+    public void draw(Graphics graphics, int center_x, int center_y) {
+        super.draw(graphics, center_x, center_y);
+        //TODO life
+        LifeLabelDrawer.drawLabel(graphics, center_x + (int)x, center_y + (int)y, 0.8);
+    }
 }

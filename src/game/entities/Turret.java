@@ -1,5 +1,6 @@
 package game.entities;
 
+import java.awt.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -66,5 +67,4 @@ public class Turret extends GameEntity {
         int bytesRead = super.readFrom(input);
         return bytesRead + INT_SIZE;
     }
-
 }
